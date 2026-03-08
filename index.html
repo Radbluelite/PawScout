@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sip Sip">
+<title>Sip Sip 🐱</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #0f0e17;
+  --card: #1a1a2e;
+  --card2: #16213e;
+  --accent: #e94560;
+  --blue: #0f3460;
+  --water: #4fc3f7;
+  --water2: #81d4fa;
+  --teal: #26c6da;
+  --text: #fffffe;
+  --muted: #a7a9be;
+  --border: rgba(79,195,247,0.15);
+  --glow: rgba(79,195,247,0.3);
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg);
+  font-family: 'Nunito', sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* Starry background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 80% 10%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 50% 60%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1px 1px at 10% 80%, rgba(255,255,255,0.3) 0%, transparent 100%),
+    radial-gradient(1px 1px at 90% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+    radial-gradient(1px 1px at 35% 15%, rgba(255,255,255,0.35) 0%, transparent 100%),
+    radial-gradient(1px 1px at 65% 85%, rgba(255,255,255,0.25) 0%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 75% 45%, rgba(79,195,247,0.4) 0%, transparent 100%),
+    radial-gradient(1px 1px at 25% 55%, rgba(79,195,247,0.3) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.app {
+  position: relative;
+  z-index: 1;
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 0 16px 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Header ── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 52px 0 16px;
+}
+.header-left h1 {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2.4rem;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--water), var(--teal));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-left p {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 2px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.streak-badge {
+  background: linear-gradient(135deg, #ff6b35, #f7931e);
+  border-radius: 20px;
+  padding: 8px 14px;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(255,107,53,0.4);
+}
+.streak-badge .num {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: white;
+}
+.streak-badge .lbl {
+  font-size: 0.6rem;
+  color: rgba(255,255,255,0.85);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ── Cat section ── */
+.cat-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 8px 0;
+  position: relative;
+}
+
+.bubble-wrap {
+  position: relative;
+  margin-bottom: 10px;
+}
+.speech {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  text-align: center;
+  max-width: 290px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4), 0 0 0 1px var(--border);
+  animation: fadeSlide 0.4s ease;
+}
+@keyframes fadeSlide {
+  from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.speech::after {
+  content: '';
+  position: absolute;
+  bottom: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--border);
+}
+.speech::before {
+  content: '';
+  position: absolute;
+  bottom: -7px;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--card);
+  z-index: 1;
+}
+
+.cat-frame {
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid transparent;
+  background: linear-gradient(var(--card), var(--card)) padding-box,
+              linear-gradient(135deg, var(--water), var(--teal), var(--accent)) border-box;
+  box-shadow: 0 0 40px var(--glow), 0 8px 32px rgba(0,0,0,0.5);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: catBob 3.5s ease-in-out infinite;
+}
+.cat-frame:active {
+  transform: scale(0.92);
+}
+@keyframes catBob {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-10px); }
+}
+.cat-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cat-tap-hint {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 8px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* ── Progress ring ── */
+.progress-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 20px;
+  margin-top: 14px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+.ring-wrap {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+}
+.ring-wrap svg {
+  transform: rotate(-90deg);
+}
+.ring-bg { fill: none; stroke: rgba(79,195,247,0.1); stroke-width: 7; }
+.ring-fill {
+  fill: none;
+  stroke: url(#ringGrad);
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-dasharray: 220;
+  stroke-dashoffset: 220;
+  transition: stroke-dashoffset 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.ring-pct {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.35rem;
+  color: var(--water);
+  line-height: 1;
+}
+.ring-sub {
+  font-size: 0.55rem;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.progress-info { flex: 1; }
+.progress-info .drunk {
+  font-family: 'Fredoka One', cursive;
+  font-size: 2rem;
+  color: var(--text);
+  line-height: 1;
+}
+.progress-info .drunk span {
+  font-size: 1rem;
+  color: var(--muted);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 700;
+}
+.progress-info .goal-text {
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 3px;
+}
+.bar-wrap {
+  margin-top: 10px;
+  height: 8px;
+  background: rgba(79,195,247,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--water), var(--teal));
+  border-radius: 10px;
+  transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+.bar-fill::after {
+  content: '';
+  position: absolute;
+  top: 1px;
+  left: 6px;
+  right: 6px;
+  height: 3px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 3px;
+}
+
+/* ── Cup buttons ── */
+.cups-label {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin: 18px 0 10px;
+}
+.cups-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+.cup-btn {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 14px 6px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+}
+.cup-btn:active {
+  transform: scale(0.9);
+  background: rgba(79,195,247,0.15);
+  border-color: var(--water);
+  box-shadow: 0 0 20px var(--glow);
+}
+.cup-btn .icon { font-size: 1.6rem; }
+.cup-btn .amt {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+.cup-btn .ml {
+  font-size: 0.6rem;
+  color: rgba(167,169,190,0.6);
+  font-weight: 600;
+}
+
+/* ── Reminder card ── */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 18px 20px;
+  margin-top: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0;
+}
+.card-title {
+  font-family: 'Fredoka One', cursive;
+  font-size: 1.05rem;
+  color: var(--text);
+}
+.card-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+/* Toggle */
+.toggle-wrap {
+  position: relative;
+  width: 52px;
+  height: 28px;
+  cursor: pointer;
+}
+.toggle-wrap input { display: none; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: rgba(79,195,247,0.15);
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  transition: all 0.3s;
+}
+.toggle-wrap input:checked + .toggle-track {
+  background: linear-gradient(135deg, var(--water), var(--teal));
+  border-color: var(--water);
+  box-shadow: 0 0 16px var(--glow);
+}
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1;
+  pointer-events: none;
+}
+.toggle-wrap input:checked ~ .toggle-thumb {
+  transform: translateX(24px);
+}
+
+/* Interval pills */
+.pills {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+}
+.pill {
+  flex: 1;
+  background: rgba(79,195,247,0.07);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 4px;
+  text-align: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  touch-action: manipulation;
+}
+.pill.active {
+  background: rgba(79,195,247,0.18);
+  border-color: var(--water);
+  color: var(--water);
+  box-shadow: 0 0 12px var(--glow);
+}
+.pill:active { transform: scale(0.93); }
+
+/* Next reminder box */
+.next-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+  background: rgba(79,195,247,0.06);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 11px 14px;
+}
+.next-box .ico { font-size: 1.1rem; }
+.next-box .next-label { font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+.next-box .next-time { font-family: 'Fredoka One', cursive; font-size: 1rem; color: var(--water); }
+.next-box .next-in { font-size: 0.65rem; color: var(--muted); font-weight: 600; margin-top: 1px; }
+
+/* ── Hourly log ── */
+.log-grid {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 5px;
+  margin-top: 12px;
+}
+.log-cell {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: rgba(79,195,247,0.06);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.55rem;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.3s ease;
+}
+.log-cell.done {
+  background: linear-gradient(135deg, rgba(79,195,247,0.25), rgba(38,198,218,0.25));
+  border-color: var(--water);
+  color: var(--water);
+  box-shadow: 0 0 8px rgba(79,195,247,0.2);
+}
+
+/* ── Toast ── */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: linear-gradient(135deg, var(--card2), var(--card));
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 12px 22px;
+  border-radius: 30px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  z-index: 999;
+  white-space: nowrap;
+  max-width: 90vw;
+  text-align: center;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Goal reached overlay ── */
+.goal-banner {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, rgba(79,195,247,0.15), rgba(38,198,218,0.1));
+  border: 1.5px solid var(--water);
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin-top: 12px;
+  box-shadow: 0 0 30px rgba(79,195,247,0.2);
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+.goal-banner.show { display: flex; }
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(79,195,247,0.2); }
+  50% { box-shadow: 0 0 40px rgba(79,195,247,0.4); }
+}
+.goal-banner .goal-text { font-weight: 700; font-size: 0.88rem; color: var(--water); }
+
+/* Paw float anim */
+.paw-float {
+  position: fixed;
+  font-size: 1.5rem;
+  pointer-events: none;
+  z-index: 500;
+  animation: pawUp 1.2s ease-out forwards;
+}
+@keyframes pawUp {
+  0% { opacity: 0; transform: translateY(0) rotate(-10deg); }
+  15% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-80px) rotate(15deg); }
+}
+
+/* Ripple */
+.ripple-container { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(79,195,247,0.35);
+  transform: scale(0);
+  animation: rippleAnim 0.5s linear;
+  pointer-events: none;
+}
+@keyframes rippleAnim {
+  to { transform: scale(4); opacity: 0; }
+}
+
+/* PWA install hint */
+.install-hint {
+  text-align: center;
+  font-size: 0.7rem;
+  color: rgba(167,169,190,0.5);
+  margin-top: 16px;
+  font-weight: 600;
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <h1>Sip Sip!</h1>
+      <p>Hydration tracker 🐱</p>
+    </div>
+    <div class="streak-badge">
+      <div class="num" id="streakNum">0</div>
+      <div class="lbl">Day streak 🔥</div>
+    </div>
+  </div>
+
+  <!-- Cat -->
+  <div class="cat-section">
+    <div class="bubble-wrap">
+      <div class="speech" id="speechBubble">Meow!! Drink water NOW hooman 💧</div>
+    </div>
+    <div class="cat-frame" id="catFrame" onclick="catTap(event)">
+  <img 
+    src="https://media.tenor.com/yY98PSJ_PlYAAAAi/coffee-cup-of-coffee.gif"
+    alt="cute cat">
+</div>
+    <p class="cat-tap-hint">tap the kitty 🐾</p>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-section">
+    <div class="ring-wrap">
+      <svg width="90" height="90" viewBox="0 0 90 90">
+        <defs>
+          <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#4fc3f7"/>
+            <stop offset="100%" stop-color="#26c6da"/>
+          </linearGradient>
+        </defs>
+        <circle class="ring-bg" cx="45" cy="45" r="35"/>
+        <circle class="ring-fill" id="ringFill" cx="45" cy="45" r="35"/>
+      </svg>
+      <div class="ring-center">
+        <span class="ring-pct" id="ringPct">0%</span>
+        <span class="ring-sub">done</span>
+      </div>
+    </div>
+    <div class="progress-info">
+      <div class="drunk"><span id="drankAmt">0</span><span> ml</span></div>
+      <div class="goal-text">Goal: <strong>2000 ml</strong></div>
+      <div class="bar-wrap">
+        <div class="bar-fill" id="barFill" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Goal banner -->
+  <div class="goal-banner" id="goalBanner">
+    <span style="font-size:1.4rem">🎉</span>
+    <div>
+      <div class="goal-text">Daily goal reached! Purrfect!!</div>
+      <div style="font-size:0.72rem;color:var(--muted);font-weight:600;margin-top:2px">I'm so proud of you, hooman 🐾</div>
+    </div>
+  </div>
+
+  <!-- Cups -->
+  <div class="cups-label">+ Add water (1 sip = 25 ml)</div>
+  <div class="cups-grid">
+    <button class="cup-btn ripple-container" onclick="addWater(25, event)">
+      <span class="icon">💧</span><span class="amt">1 Sip</span><span class="ml">25 ml</span>
+    </button>
+    <button class="cup-btn ripple-container" onclick="addWater(75, event)">
+      <span class="icon">💧💧💧</span><span class="amt">3 Sips</span><span class="ml">75 ml</span>
+    </button>
+    <button class="cup-btn ripple-container" onclick="addWater(125, event)">
+      <span class="icon">🌊</span><span class="amt">5 Sips</span><span class="ml">125 ml</span>
+    </button>
+    <button class="cup-btn ripple-container" onclick="addWater(250, event)">
+      <span class="icon">🫧</span><span class="amt">10 Sips</span><span class="ml">250 ml</span>
+    </button>
+  </div>
+
+  <!-- Reminder -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <div class="card-title">⏰ Cat Reminders</div>
+        <div class="card-sub" id="reminderSub">Tap to turn on</div>
+      </div>
+      <label class="toggle-wrap">
+        <input type="checkbox" id="reminderToggle" onchange="toggleReminder()">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+    <div class="pills">
+      <div class="pill active" data-val="30" onclick="setReminderInterval(30, this)">30 min</div>
+      <div class="pill" data-val="60" onclick="setReminderInterval(60, this)">1 hr</div>
+      <div class="pill" data-val="90" onclick="setReminderInterval(90, this)">1.5 hr</div>
+      <div class="pill" data-val="120" onclick="setReminderInterval(120, this)">2 hr</div>
+    </div>
+
+    <div class="next-box" id="nextBox" style="display:none">
+      <span class="ico">🐱</span>
+      <div>
+        <div class="next-label">Next meow at <span class="next-time" id="nextTime">–</span></div>
+        <div class="next-in" id="nextIn">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hourly log -->
+  <div class="card">
+    <div class="card-title">📅 Today's Log</div>
+    <div class="log-grid" id="logGrid"></div>
+  </div>
+
+  <div class="install-hint">Add to Home Screen for the full app experience 🐾</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──
+const GOAL = 2000;
+const STORAGE_KEY = 'sipsip_v2';
+
+const CAT_MSGS = [
+  "Meow!! Drink water NOW hooman 💧",
+  "I will stare at you until you sip 👁️",
+  "Purrr… your cells are thirsty 🐱",
+  "HYDRATE OR I KNOCK THIS OFF THE TABLE 😾",
+  "Have you had water today? I'm asking. 💧",
+  "Water = happy cat = happy you 🐾",
+  "Mew mew! Don't make me beg, hooman",
+  "Bold choice not drinking water. Bold. 😼",
+  "I'm watching you… *blinks slowly* 💧",
+  "The faucet is calling your name 🚿",
+];
+
+const SIP_MSGS = [
+  ml => `+${ml/25} sip${ml>25?'s':''}! Good hooman! 😸`,
+  ml => `Purrfect! +${ml/25} sip${ml>25?'s':''}! 💧`,
+  ml => `I'm so proud of you!! 🎉`,
+  ml => `*happy tail wag* ${ml/25} sip${ml>25?'s':''}!`,
+  ml => `Slay hooman! ${ml/25} sips down 💅`,
+];
+
+let state = loadState();
+let reminderTimer = null;
+let nextReminderDate = null;
+let countdownInterval = null;
+
+function loadState() {
+  const today = new Date().toDateString();
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const s = raw ? JSON.parse(raw) : null;
+    if (s && s.date === today) return s;
+  } catch {}
+  return {
+    date: today,
+    drank: 0,
+    hourlyLog: {},
+    intervalMin: 30,
+    remindersOn: false,
+    streak: 0,
+    lastGoalDate: null,
+  };
+}
+
+function saveState() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch {}
+}
+
+// ── Boot ──
+(function init() {
+  buildLogGrid();
+  updateUI();
+  rotateCatMsg();
+  setInterval(rotateCatMsg, 9000);
+
+  // Restore toggle
+  document.getElementById('reminderToggle').checked = state.remindersOn;
+  setActivePill(state.intervalMin);
+  if (state.remindersOn) startReminders(false);
+
+  requestNotifPermission();
+})();
+
+// ── Build log grid ──
+function buildLogGrid() {
+  const grid = document.getElementById('logGrid');
+  grid.innerHTML = '';
+  for (let h = 5; h <= 22; h++) {
+    const el = document.createElement('div');
+    el.className = 'log-cell' + (state.hourlyLog[h] ? ' done' : '');
+    el.id = `h${h}`;
+    const label = h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h-12}p`;
+    el.textContent = state.hourlyLog[h] ? '💧' : label;
+    grid.appendChild(el);
+  }
+}
+
+// ── UI update ──
+function updateUI() {
+  const pct = Math.min(100, Math.round(state.drank / GOAL * 100));
+  const circum = 2 * Math.PI * 35; // ≈ 219.9
+
+  document.getElementById('drankAmt').textContent = state.drank;
+  document.getElementById('ringPct').textContent = pct + '%';
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('streakNum').textContent = state.streak;
+
+  const offset = circum - (pct / 100) * circum;
+  document.getElementById('ringFill').style.strokeDasharray = circum;
+  document.getElementById('ringFill').style.strokeDashoffset = offset;
+
+  if (state.drank >= GOAL) {
+    document.getElementById('goalBanner').classList.add('show');
+  }
+}
+
+// ── Add water ──
+function addWater(ml, event) {
+  if (event) createRipple(event);
+
+  const prev = state.drank;
+  state.drank = Math.min(GOAL, state.drank + ml);
+  const h = new Date().getHours();
+  state.hourlyLog[h] = true;
+
+  const cell = document.getElementById(`h${h}`);
+  if (cell) { cell.classList.add('done'); cell.textContent = '💧'; }
+
+  const msg = SIP_MSGS[Math.floor(Math.random() * SIP_MSGS.length)](ml);
+  showToast(msg);
+  setCatMsg(msg);
+  spawnPaw();
+  saveState();
+  updateUI();
+
+  if (prev < GOAL && state.drank >= GOAL) {
+    // Update streak
+    const today = new Date().toDateString();
+    if (state.lastGoalDate !== today) {
+      const yesterday = new Date(Date.now() - 86400000).toDateString();
+      state.streak = state.lastGoalDate === yesterday ? state.streak + 1 : 1;
+      state.lastGoalDate = today;
+      saveState();
+      updateUI();
+      setTimeout(() => showToast('Streak updated! ' + state.streak + ' days!'), 1800);
+    }
+  }
+}
+
+// ── Reminders ──
+function requestNotifPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+function toggleReminder() {
+  state.remindersOn = document.getElementById('reminderToggle').checked;
+  saveState();
+  if (state.remindersOn) {
+    startReminders(true);
+  } else {
+    stopReminders();
+    document.getElementById('reminderSub').textContent = 'Tap to turn on';
+    document.getElementById('nextBox').style.display = 'none';
+    showToast('Reminders paused 😴');
+  }
+}
+
+function startReminders(announce) {
+  stopReminders();
+  const ms = state.intervalMin * 60 * 1000;
+  nextReminderDate = new Date(Date.now() + ms);
+  updateNextBox();
+  reminderTimer = setTimeout(fireAndReschedule, ms);
+  if (announce) showToast(`🐱 I'll meow every ${fmtInterval(state.intervalMin)}!`);
+
+  clearInterval(countdownInterval);
+  countdownInterval = setInterval(updateNextBox, 1000);
+}
+
+function stopReminders() {
+  clearTimeout(reminderTimer);
+  clearInterval(countdownInterval);
+  reminderTimer = null;
+  nextReminderDate = null;
+}
+
+function fireAndReschedule() {
+  fireReminder();
+  if (state.remindersOn) startReminders(false);
+}
+
+function fireReminder() {
+  const m = CAT_MSGS[Math.floor(Math.random() * CAT_MSGS.length)];
+  setCatMsg(m);
+  showToast('🐱 ' + m.slice(0, 40));
+
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification('Sip Sip! 🐱', {
+      body: m,
+      icon: 'https://media.tenor.com/pMhSj0lSqSEAAAAi/cat-kitten.gif',
+      tag: 'water-reminder',
+      renotify: true,
+    });
+  }
+}
+
+function setReminderInterval(min, el) {
+  state.intervalMin = min;
+  saveState();
+  setActivePill(min);
+  if (state.remindersOn) {
+    startReminders(false);
+    showToast(`⏰ Reminders set to every ${fmtInterval(min)}`);
+  }
+}
+
+function setActivePill(val) {
+  document.querySelectorAll('.pill').forEach(p => {
+    p.classList.toggle('active', parseInt(p.dataset.val) === val);
+  });
+}
+
+function updateNextBox() {
+  if (!nextReminderDate || !state.remindersOn) return;
+  const box = document.getElementById('nextBox');
+  box.style.display = 'flex';
+  document.getElementById('reminderSub').textContent = `Every ${fmtInterval(state.intervalMin)}`;
+
+  const h = nextReminderDate.getHours();
+  const m = nextReminderDate.getMinutes().toString().padStart(2,'0');
+  const ap = h >= 12 ? 'PM' : 'AM';
+  document.getElementById('nextTime').textContent = `${h%12||12}:${m} ${ap}`;
+
+  const diff = Math.max(0, nextReminderDate - Date.now());
+  const mins = Math.floor(diff / 60000);
+  const secs = Math.floor((diff % 60000) / 1000);
+  document.getElementById('nextIn').textContent = diff > 0 ? `in ${mins}m ${secs}s` : 'Any moment… 🐱';
+}
+
+// ── Cat messages ──
+function setCatMsg(msg) {
+  const el = document.getElementById('speechBubble');
+  el.style.animation = 'none';
+  el.offsetHeight;
+  el.style.animation = 'fadeSlide 0.35s ease';
+  el.textContent = msg;
+}
+
+function rotateCatMsg() {
+  setCatMsg(CAT_MSGS[Math.floor(Math.random() * CAT_MSGS.length)]);
+}
+
+function catTap(e) {
+  createRipple(e);
+  rotateCatMsg();
+  spawnPaw();
+}
+
+// ── Visual effects ──
+function createRipple(e) {
+  const btn = e.currentTarget;
+  const r = document.createElement('span');
+  r.className = 'ripple';
+  const rect = btn.getBoundingClientRect();
+  const size = Math.max(rect.width, rect.height);
+  r.style.cssText = `width:${size}px;height:${size}px;left:${(e.clientX||rect.left+rect.width/2)-rect.left-size/2}px;top:${(e.clientY||rect.top+rect.height/2)-rect.top-size/2}px`;
+  btn.appendChild(r);
+  setTimeout(() => r.remove(), 500);
+}
+
+function spawnPaw() {
+  const el = document.createElement('div');
+  el.className = 'paw-float';
+  el.textContent = '🐾';
+  el.style.left = (35 + Math.random() * 30) + '%';
+  el.style.top = '45%';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1200);
+}
+
+// ── Toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── Helpers ──
+function fmtInterval(min) {
+  if (min < 60) return `${min} min`;
+  if (min === 60) return '1 hour';
+  return `${min/60} hours`;
+}
+</script>
+</body>
+</html>
