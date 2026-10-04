@@ -1,730 +1,2715 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
-  <meta name="description" content="Privacy-first stray cat log. Photos and approximate locations are stored locally in your browser." />
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="Privacy-first stray cat log. Photos and approximate locations are stored locally in your browser.">
 <title>PawScout — Privacy First</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<!-- Leaflet -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<script
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-  :root{
-    --ink:#171b26;
-    --ink-2:#20263a;
-    --ink-3:#2b3350;
-    --paper:#efe8d8;
-    --paper-2:#e4dcc6;
-    --amber:#f2a93b;
-    --coral:#e8735c;
-    --mint:#7fb89d;
-    --text-soft:#a9b0c6;
-    --text-faint:#6b7290;
-  }
-  *{ box-sizing:border-box; }
-  html,body{ height:100%; margin:0; padding:0; background:var(--ink); overflow:hidden; }
-  body{ font-family:'Inter',sans-serif; color:var(--paper); }
-  #map{ position:absolute; inset:0; }
+:root {
+  --ink: #171b26;
+  --ink-2: #20263a;
+  --ink-3: #2b3350;
+  --paper: #efe8d8;
+  --paper-2: #e4dcc6;
+  --amber: #f2a93b;
+  --coral: #e8735c;
+  --mint: #7fb89d;
+  --text-soft: #a9b0c6;
+  --text-faint: #6b7290;
+}
 
-  .leaflet-tile-pane{ filter: saturate(0.55) brightness(0.72) contrast(1.05) hue-rotate(-6deg); }
-  .leaflet-control-zoom{ display:none; }
-  .leaflet-popup-content-wrapper, .leaflet-popup-tip{ background:transparent; box-shadow:none; padding:0; }
-  .leaflet-popup-content{ margin:0; }
-  .leaflet-popup-close-button{ display:none; }
+* {
+  box-sizing: border-box;
+}
 
-  /* ---------- brand mark ---------- */
-  .brand{
-    position:absolute; top:16px; left:16px; z-index:500;
-    background:var(--ink-2); border:1px solid var(--ink-3);
-    padding:10px 16px 10px 14px; border-radius:3px;
-    display:flex; align-items:center; gap:10px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.35);
-  }
-  .brand svg{ width:22px; height:22px; flex-shrink:0; }
-  .brand-text{ line-height:1; }
-  .brand-title{ font-family:'Fraunces',serif; font-weight:700; font-size:16.5px; letter-spacing:0.01em; }
-  .brand-sub{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--text-faint); letter-spacing:0.14em; text-transform:uppercase; margin-top:2px; }
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: var(--ink);
+  overflow: hidden;
+}
 
-  /* ---------- count chip ---------- */
-  .count-chip{
-    position:absolute; top:16px; right:16px; z-index:500;
-    background:var(--ink-2); border:1px solid var(--ink-3); border-radius:3px;
-    padding:9px 14px; cursor:pointer; user-select:none;
-    display:flex; align-items:center; gap:8px;
-    box-shadow:0 6px 18px rgba(0,0,0,0.35);
-    transition:background 0.15s;
-  }
-  .count-chip:hover{ background:var(--ink-3); }
-  .count-num{ font-family:'Fraunces',serif; font-weight:700; font-size:18px; color:var(--amber); }
-  .count-label{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:var(--text-faint); letter-spacing:0.1em; text-transform:uppercase; }
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--paper);
+}
 
-  /* ---------- FAB ---------- */
-  .fab{
-    position:absolute; bottom:24px; left:50%; transform:translateX(-50%); z-index:500;
-    background:var(--coral); color:var(--ink); border:none; border-radius:30px;
-    padding:14px 24px 14px 18px; display:flex; align-items:center; gap:10px;
-    font-family:'Inter',sans-serif; font-weight:600; font-size:14.5px; cursor:pointer;
-    box-shadow:0 10px 26px rgba(232,115,92,0.4);
-    transition:transform 0.15s, box-shadow 0.15s;
-  }
-  .fab:hover{ transform:translateX(-50%) translateY(-2px); box-shadow:0 14px 30px rgba(232,115,92,0.5); }
-  .fab:active{ transform:translateX(-50%) translateY(0px); }
-  .fab svg{ width:19px; height:19px; }
+#map {
+  position: absolute;
+  inset: 0;
+}
 
-  /* ---------- map theme button ---------- */
-  .theme-btn{
-    position:absolute; bottom:76px; right:16px; z-index:500;
-    width:42px; height:42px; border-radius:50%; border:1px solid var(--ink-3);
-    background:var(--ink-2); color:var(--paper); display:flex;
-    align-items:center; justify-content:center; cursor:pointer;
-    box-shadow:0 6px 18px rgba(0,0,0,0.35);
-  }
-  .theme-btn svg{ width:19px; height:19px; stroke:currentColor; }
-  .theme-btn:hover{ background:var(--ink-3); }
+/* Map appearance */
+.leaflet-tile-pane {
+  filter: saturate(0.55) brightness(0.72) contrast(1.05);
+}
 
-  /* ---------- edit button ---------- */
-  .entry-edit{
-    position:absolute; top:6px; right:31px; width:20px; height:20px;
-    border-radius:50%; background:rgba(0,0,0,0.06); border:none;
-    cursor:pointer; display:flex; align-items:center; justify-content:center;
-  }
-  .entry-edit svg{ width:10px; height:10px; stroke:#7a7361; }
-  .entry-edit:hover{ background:rgba(127,184,157,0.25); }
+.leaflet-control-zoom {
+  display: none;
+}
 
-  /* ---------- locate button ---------- */
-  .locate-btn{
-    position:absolute; bottom:24px; right:16px; z-index:500;
-    width:42px; height:42px; border-radius:50%; border:1px solid var(--ink-3);
-    background:var(--ink-2); display:flex; align-items:center; justify-content:center; cursor:pointer;
-    box-shadow:0 6px 18px rgba(0,0,0,0.35);
-  }
-  .locate-btn svg{ width:19px; height:19px; stroke:var(--paper); }
-  .locate-btn:hover{ background:var(--ink-3); }
+.leaflet-control-attribution {
+  background: rgba(23, 27, 38, 0.75) !important;
+  color: #aaa !important;
+}
 
-  /* ---------- drawer (log list) ---------- */
-  .drawer{
-    position:absolute; top:0; right:0; height:100%; width:320px; max-width:88vw; z-index:900;
-    background:var(--ink-2); border-left:1px solid var(--ink-3);
-    transform:translateX(100%); transition:transform 0.28s cubic-bezier(.4,0,.2,1);
-    display:flex; flex-direction:column; box-shadow:-16px 0 40px rgba(0,0,0,0.4);
-  }
-  .drawer.open{ transform:translateX(0); }
-  .drawer-head{ padding:18px 18px 14px; border-bottom:1px solid var(--ink-3); display:flex; justify-content:space-between; align-items:center; }
-  .drawer-title{ font-family:'Fraunces',serif; font-weight:700; font-size:17px; }
-  .drawer-close{ background:none; border:none; cursor:pointer; padding:4px; }
-  .drawer-close svg{ width:18px; height:18px; stroke:var(--text-soft); }
-  .drawer-list{ flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; }
-  .drawer-empty{ color:var(--text-faint); font-size:13px; text-align:center; margin-top:40px; line-height:1.6; padding:0 20px; }
+.leaflet-control-attribution a {
+  color: #d5b06a !important;
+}
 
-  .entry-card{
-    background:var(--paper); border-radius:4px; padding:10px; cursor:pointer;
-    display:flex; gap:10px; position:relative; transition:transform 0.15s;
-  }
-  .entry-card:hover{ transform:translateY(-1px); }
-  .entry-thumb{ width:52px; height:52px; border-radius:3px; object-fit:cover; flex-shrink:0; background:var(--paper-2); }
-  .entry-info{ flex:1; min-width:0; color:var(--ink); }
-  .entry-name{ font-family:'Fraunces',serif; font-weight:600; font-size:14.5px; color:var(--ink); }
-  .entry-date{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:#7a7361; margin-top:3px; letter-spacing:0.02em; }
-  .entry-del{
-    position:absolute; top:6px; right:6px; width:20px; height:20px; border-radius:50%;
-    background:rgba(0,0,0,0.06); border:none; cursor:pointer; display:flex; align-items:center; justify-content:center;
-  }
-  .entry-del svg{ width:11px; height:11px; stroke:#7a7361; }
-  .entry-del:hover{ background:rgba(232,115,92,0.2); }
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
 
-  /* ---------- modal ---------- */
-  .modal-backdrop{
-    position:absolute; inset:0; z-index:1000; background:rgba(10,12,20,0.72);
-    display:none; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(3px);
-  }
-  .modal-backdrop.open{ display:flex; }
-  .modal{
-    background:var(--paper); color:var(--ink); border-radius:6px; width:100%; max-width:380px;
-    padding:22px; max-height:90vh; overflow-y:auto;
-    box-shadow:0 30px 60px rgba(0,0,0,0.5);
-  }
-  .modal-title{ font-family:'Fraunces',serif; font-weight:700; font-size:19px; margin-bottom:2px; }
-  .modal-sub{ font-family:'JetBrains Mono',monospace; font-size:10px; color:#8a8368; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:18px; }
+.leaflet-popup-content {
+  margin: 0;
+}
 
-  .field-label{ font-size:11.5px; font-weight:600; color:#4a4636; margin-bottom:6px; display:block; letter-spacing:0.02em; }
-  .field{ margin-bottom:16px; }
-  .text-input{
-    width:100%; padding:10px 12px; border:1.5px solid var(--paper-2); border-radius:3px; background:#fbf8f0;
-    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); outline:none;
-  }
-  .text-input:focus{ border-color:var(--coral); }
+.leaflet-popup-close-button {
+  display: none;
+}
 
-  .photo-zone{
-    width:100%; aspect-ratio:4/3; border:1.5px dashed var(--paper-2); border-radius:4px;
-    display:flex; align-items:center; justify-content:center; cursor:pointer; position:relative;
-    background:#fbf8f0; overflow:hidden;
-  }
-  .photo-zone img{ width:100%; height:100%; object-fit:cover; }
-  .photo-empty{ display:flex; flex-direction:column; align-items:center; gap:8px; color:#a39c82; }
-  .photo-empty svg{ width:28px; height:28px; }
-  .photo-empty span{ font-size:12px; font-weight:500; }
-  .photo-input{ display:none; }
-  .photo-actions{ display:flex; gap:8px; margin-top:10px; width:100%; }
-  .photo-action{
-    flex:1; min-height:40px; border:1px solid var(--ink-3);
-    background:var(--paper-2); color:var(--ink); border-radius:5px;
-    font-family:inherit; font-size:11px; font-weight:700;
-    display:flex; align-items:center; justify-content:center; gap:7px;
-    cursor:pointer;
-  }
-  .photo-action:hover{ background:var(--paper); }
-  .photo-action svg{ width:16px; height:16px; }
+/* Brand */
+.brand {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 500;
 
-  .privacy-note{
-    font-size:10.5px; line-height:1.45; color:#6b6650;
-    background:#eee7d5; border:1px solid var(--paper-2);
-    padding:9px 10px; border-radius:3px; margin-bottom:14px;
-  }
-  .privacy-note strong{ color:var(--ink); }
+  background: var(--ink-2);
+  border: 1px solid var(--ink-3);
+  padding: 10px 16px 10px 14px;
+  border-radius: 3px;
 
-  .privacy-note{
-    font-size:10.5px; line-height:1.45; color:#6b6650;
-    background:#eee7d5; border:1px solid var(--paper-2);
-    padding:9px 10px; border-radius:3px; margin-bottom:14px;
-  }
-  .privacy-note strong{ color:var(--ink); }
+  display: flex;
+  align-items: center;
+  gap: 10px;
 
-  .loc-status{
-    display:flex; align-items:center; gap:7px; font-family:'JetBrains Mono',monospace; font-size:11px;
-    color:#6b6650; background:#e6dfca; padding:8px 10px; border-radius:3px;
-  }
-  .loc-status svg{ width:13px; height:13px; flex-shrink:0; }
-  .loc-status.ready{ color:#3f6b52; background:#dde9de; }
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
 
-  .modal-actions{ display:flex; gap:10px; margin-top:20px; }
-  .btn{ flex:1; padding:11px; border-radius:3px; border:none; font-family:'Inter',sans-serif; font-weight:600; font-size:13.5px; cursor:pointer; }
-  .btn-cancel{ background:transparent; color:#7a7361; border:1.5px solid var(--paper-2); }
-  .btn-save{ background:var(--coral); color:var(--ink); }
-  .btn-save:disabled{ opacity:0.5; cursor:not-allowed; }
+.brand svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+}
 
-  /* ---------- map popup card ---------- */
-  .pop-card{
-    background:var(--paper); color:var(--ink); border-radius:5px; width:200px; overflow:hidden;
-    box-shadow:0 14px 34px rgba(0,0,0,0.45); position:relative;
-  }
-  .pop-photo{ width:100%; height:140px; object-fit:cover; display:block; }
-  .pop-body{ padding:10px 12px 12px; }
-  .pop-name{ font-family:'Fraunces',serif; font-weight:700; font-size:15.5px; }
-  .pop-meta{ font-family:'JetBrains Mono',monospace; font-size:9.5px; color:#8a8368; margin-top:4px; letter-spacing:0.02em; }
-  .pop-stamp{
-    position:absolute; top:8px; right:8px; background:rgba(23,27,38,0.82); color:var(--amber);
-    font-family:'JetBrains Mono',monospace; font-size:8.5px; padding:3px 6px; border-radius:2px;
-    letter-spacing:0.06em; transform:rotate(2deg);
+.brand-text {
+  line-height: 1;
+}
+
+.brand-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 16.5px;
+}
+
+.brand-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+/* Count */
+.count-chip {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 500;
+
+  background: var(--ink-2);
+  border: 1px solid var(--ink-3);
+  border-radius: 3px;
+
+  padding: 9px 14px;
+  cursor: pointer;
+  user-select: none;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+.count-chip:hover {
+  background: var(--ink-3);
+}
+
+.count-num {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--amber);
+}
+
+.count-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  color: var(--text-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Main button */
+.fab {
+  position: absolute;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 500;
+
+  background: var(--coral);
+  color: var(--ink);
+  border: none;
+  border-radius: 30px;
+
+  padding: 14px 24px 14px 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 14.5px;
+
+  cursor: pointer;
+
+  box-shadow: 0 10px 26px rgba(232,115,92,0.4);
+
+  transition: 0.15s;
+}
+
+.fab:hover {
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.fab svg {
+  width: 19px;
+  height: 19px;
+}
+
+/* Theme button */
+.theme-btn {
+  position: absolute;
+  bottom: 76px;
+  right: 16px;
+  z-index: 500;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 50%;
+  border: 1px solid var(--ink-3);
+
+  background: var(--ink-2);
+  color: var(--paper);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+.theme-btn svg {
+  width: 19px;
+  height: 19px;
+  stroke: currentColor;
+}
+
+/* Location button */
+.locate-btn {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  z-index: 500;
+
+  width: 42px;
+  height: 42px;
+
+  border-radius: 50%;
+  border: 1px solid var(--ink-3);
+
+  background: var(--ink-2);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+}
+
+.locate-btn svg {
+  width: 19px;
+  height: 19px;
+  stroke: var(--paper);
+}
+
+/* Drawer */
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+
+  height: 100%;
+  width: 320px;
+  max-width: 88vw;
+
+  z-index: 900;
+
+  background: var(--ink-2);
+  border-left: 1px solid var(--ink-3);
+
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+
+  display: flex;
+  flex-direction: column;
+
+  box-shadow: -16px 0 40px rgba(0,0,0,0.4);
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-head {
+  padding: 18px;
+  border-bottom: 1px solid var(--ink-3);
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.drawer-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 17px;
+}
+
+.drawer-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.drawer-close svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--text-soft);
+}
+
+.drawer-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.drawer-empty {
+  color: var(--text-faint);
+  font-size: 13px;
+  text-align: center;
+  margin-top: 40px;
+  line-height: 1.6;
+}
+
+/* Entry */
+.entry-card {
+  background: var(--paper);
+  border-radius: 4px;
+  padding: 10px;
+
+  cursor: pointer;
+
+  display: flex;
+  gap: 10px;
+
+  position: relative;
+}
+
+.entry-thumb {
+  width: 52px;
+  height: 52px;
+
+  border-radius: 3px;
+
+  object-fit: cover;
+
+  flex-shrink: 0;
+
+  background: var(--paper-2);
+}
+
+.entry-info {
+  flex: 1;
+  min-width: 0;
+
+  color: var(--ink);
+}
+
+.entry-name {
+  font-family: 'Fraunces', serif;
+  font-weight: 600;
+  font-size: 14.5px;
+}
+
+.entry-date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+
+  color: #7a7361;
+
+  margin-top: 3px;
+}
+
+.entry-edit,
+.entry-del {
+  position: absolute;
+
+  top: 6px;
+
+  width: 20px;
+  height: 20px;
+
+  border-radius: 50%;
+
+  background: rgba(0,0,0,0.06);
+  border: none;
+
+  cursor: pointer;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.entry-edit {
+  right: 31px;
+}
+
+.entry-del {
+  right: 6px;
+}
+
+.entry-edit svg,
+.entry-del svg {
+  width: 11px;
+  height: 11px;
+  stroke: #7a7361;
+}
+
+/* Modal */
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+
+  z-index: 1000;
+
+  background: rgba(10,12,20,0.72);
+
+  display: none;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  backdrop-filter: blur(3px);
+}
+
+.modal-backdrop.open {
+  display: flex;
+}
+
+.modal {
+  background: var(--paper);
+  color: var(--ink);
+
+  border-radius: 6px;
+
+  width: 100%;
+  max-width: 380px;
+
+  padding: 22px;
+
+  max-height: 90vh;
+  overflow-y: auto;
+
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+}
+
+.modal-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 700;
+  font-size: 19px;
+}
+
+.modal-sub {
+  font-family: 'JetBrains Mono', monospace;
+
+  font-size: 10px;
+
+  color: #8a8368;
+
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  margin-bottom: 18px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field-label {
+  font-size: 11.5px;
+  font-weight: 600;
+
+  color: #4a4636;
+
+  margin-bottom: 6px;
+
+  display: block;
+}
+
+.text-input {
+  width: 100%;
+
+  padding: 10px 12px;
+
+  border: 1.5px solid var(--paper-2);
+  border-radius: 3px;
+
+  background: #fbf8f0;
+
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+
+  color: var(--ink);
+
+  outline: none;
+}
+
+.text-input:focus {
+  border-color: var(--coral);
+}
+
+/* Photo */
+.photo-zone {
+  width: 100%;
+
+  border: 1.5px dashed var(--paper-2);
+
+  border-radius: 4px;
+
+  background: #fbf8f0;
+
+  overflow: hidden;
+}
+
+.photo-preview-area {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  position: relative;
+}
+
+.photo-preview-area img {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.photo-empty {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  gap: 8px;
+
+  color: #a39c82;
+}
+
+.photo-empty svg {
+  width: 28px;
+  height: 28px;
+}
+
+.photo-empty span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.photo-input {
+  display: none;
+}
+
+.photo-actions {
+  display: flex;
+
+  gap: 8px;
+
+  padding: 10px;
+
+  width: 100%;
+}
+
+.photo-action {
+  flex: 1;
+
+  min-height: 40px;
+
+  border: 1px solid var(--ink-3);
+
+  background: var(--paper-2);
+  color: var(--ink);
+
+  border-radius: 5px;
+
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  cursor: pointer;
+}
+
+.photo-action svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Privacy */
+.privacy-note {
+  font-size: 10.5px;
+
+  line-height: 1.45;
+
+  color: #6b6650;
+
+  background: #eee7d5;
+
+  border: 1px solid var(--paper-2);
+
+  padding: 9px 10px;
+
+  border-radius: 3px;
+
+  margin-bottom: 14px;
+}
+
+.privacy-note strong {
+  color: var(--ink);
+}
+
+/* Location */
+.loc-status {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  font-family: 'JetBrains Mono', monospace;
+
+  font-size: 11px;
+
+  color: #6b6650;
+
+  background: #e6dfca;
+
+  padding: 8px 10px;
+
+  border-radius: 3px;
+}
+
+.loc-status svg {
+  width: 13px;
+  height: 13px;
+}
+
+.loc-status.ready {
+  color: #3f6b52;
+  background: #dde9de;
+}
+
+/* Modal buttons */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.btn {
+  flex: 1;
+
+  padding: 11px;
+
+  border-radius: 3px;
+
+  font-family: 'Inter', sans-serif;
+
+  font-weight: 600;
+  font-size: 13.5px;
+
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: transparent;
+  color: #7a7361;
+
+  border: 1.5px solid var(--paper-2);
+}
+
+.btn-save {
+  background: var(--coral);
+  color: var(--ink);
+
+  border: none;
+}
+
+.btn-save:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Popup */
+.pop-card {
+  background: var(--paper);
+
+  color: var(--ink);
+
+  border-radius: 5px;
+
+  width: 200px;
+
+  overflow: hidden;
+
+  box-shadow: 0 14px 34px rgba(0,0,0,0.45);
+
+  position: relative;
+}
+
+.pop-photo {
+  width: 100%;
+  height: 140px;
+
+  object-fit: cover;
+
+  display: block;
+}
+
+.pop-body {
+  padding: 10px 12px 12px;
+}
+
+.pop-name {
+  font-family: 'Fraunces', serif;
+
+  font-weight: 700;
+
+  font-size: 15.5px;
+}
+
+.pop-meta {
+  font-family: 'JetBrains Mono', monospace;
+
+  font-size: 9.5px;
+
+  color: #8a8368;
+
+  margin-top: 4px;
+}
+
+.pop-stamp {
+  position: absolute;
+
+  top: 8px;
+  right: 8px;
+
+  background: rgba(23,27,38,0.82);
+
+  color: var(--amber);
+
+  font-family: 'JetBrains Mono', monospace;
+
+  font-size: 8.5px;
+
+  padding: 3px 6px;
+
+  border-radius: 2px;
+
+  letter-spacing: 0.06em;
+}
+
+/* Paw */
+.paw-pin {
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45));
+}
+
+/* Toast */
+.toast {
+  position: absolute;
+
+  bottom: 88px;
+  left: 50%;
+
+  transform: translateX(-50%) translateY(10px);
+
+  background: var(--ink-2);
+
+  border: 1px solid var(--ink-3);
+
+  color: var(--paper);
+
+  padding: 9px 16px;
+
+  border-radius: 4px;
+
+  font-size: 12.5px;
+
+  z-index: 1100;
+
+  opacity: 0;
+
+  transition: 0.2s;
+
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+
+  .brand {
+    top: 10px;
+    left: 10px;
   }
 
-  .paw-pin{ filter: drop-shadow(0 2px 4px rgba(0,0,0,0.45)); }
-
-  .toast{
-    position:absolute; bottom:88px; left:50%; transform:translateX(-50%) translateY(10px);
-    background:var(--ink-2); border:1px solid var(--ink-3); color:var(--paper);
-    padding:9px 16px; border-radius:4px; font-size:12.5px; z-index:1100;
-    opacity:0; transition:opacity 0.2s, transform 0.2s; pointer-events:none;
+  .count-chip {
+    top: 10px;
+    right: 10px;
   }
-  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .fab {
+    bottom: 18px;
+  }
+
+  .locate-btn {
+    bottom: 18px;
+    right: 10px;
+  }
+
+  .theme-btn {
+    bottom: 70px;
+    right: 10px;
+  }
+
+  .modal {
+    max-width: 100%;
+    padding: 18px;
+  }
+
+}
 </style>
 </head>
+
 <body>
 
 <div id="map"></div>
 
+<!-- BRAND -->
 <div class="brand">
+
   <svg viewBox="0 0 24 24" fill="none">
-    <path d="M12 15c-2.6 0-4.7 1.6-5.2 3.9-.2.9.6 1.6 1.4 1.3 1.1-.4 2.4-.6 3.8-.6s2.7.2 3.8.6c.8.3 1.6-.4 1.4-1.3-.5-2.3-2.6-3.9-5.2-3.9z" fill="#f2a93b"/>
+
+    <path
+      d="M12 15c-2.6 0-4.7 1.6-5.2 3.9-.2.9.6 1.6 1.4 1.3 1.1-.4 2.4-.6 3.8-.6s2.7.2 3.8.6c.8.3 1.6-.4 1.4-1.3-.5-2.3-2.6-3.9-5.2-3.9z"
+      fill="#f2a93b"
+    />
+
     <circle cx="6.2" cy="10.5" r="1.9" fill="#f2a93b"/>
     <circle cx="17.8" cy="10.5" r="1.9" fill="#f2a93b"/>
     <circle cx="9.5" cy="7.2" r="1.7" fill="#f2a93b"/>
     <circle cx="14.5" cy="7.2" r="1.7" fill="#f2a93b"/>
+
   </svg>
+
   <div class="brand-text">
-    <div class="brand-title">PawScout</div>
-    <div class="brand-sub">field sightings</div>
+
+    <div class="brand-title">
+      PawScout
+    </div>
+
+    <div class="brand-sub">
+      field sightings
+    </div>
+
   </div>
+
 </div>
 
+<!-- COUNT -->
 <div class="count-chip" id="countChip">
-  <span class="count-num" id="countNum">0</span>
-  <span class="count-label">Logged</span>
+
+  <span class="count-num" id="countNum">
+    0
+  </span>
+
+  <span class="count-label">
+    Logged
+  </span>
+
 </div>
 
-<button class="theme-btn" id="themeBtn" title="Switch to light map" aria-label="Switch to light map">
-  <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round">
+<!-- THEME -->
+<button
+  class="theme-btn"
+  id="themeBtn"
+  title="Switch map appearance"
+>
+
+  <svg
+    id="themeIcon"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+  >
+
     <circle cx="12" cy="12" r="4"/>
-    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+
+    <path d="M12 2v2"/>
+    <path d="M12 20v2"/>
+    <path d="M4.93 4.93l1.41 1.41"/>
+    <path d="M17.66 17.66l1.41 1.41"/>
+    <path d="M2 12h2"/>
+    <path d="M20 12h2"/>
+    <path d="M4.93 19.07l1.41-1.41"/>
+    <path d="M17.66 6.34l1.41-1.41"/>
+
   </svg>
+
 </button>
 
-<button class="locate-btn" id="locateBtn" title="Center on me">
-  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+<!-- LOCATE -->
+<button
+  class="locate-btn"
+  id="locateBtn"
+  title="Center on me"
+>
+
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke-width="2"
+    stroke-linecap="round"
+  >
+
+    <circle cx="12" cy="12" r="3"/>
+
+    <path d="M12 2v3"/>
+    <path d="M12 19v3"/>
+    <path d="M2 12h3"/>
+    <path d="M19 12h3"/>
+
+  </svg>
+
 </button>
 
-<button class="fab" id="openModalBtn">
-  <svg viewBox="0 0 24 24" fill="none" stroke="#171b26" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+<!-- ADD SIGHTING -->
+<button
+  class="fab"
+  id="openModalBtn"
+>
+
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="#171b26"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  >
+
     <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+
     <circle cx="12" cy="13" r="3.5"/>
+
   </svg>
-  Scout !
+
+  Scout!
+
 </button>
 
-<div class="drawer" id="drawer">
+<!-- DRAWER -->
+<div
+  class="drawer"
+  id="drawer"
+>
+
   <div class="drawer-head">
-    <div class="drawer-title">The Log</div>
-    <button class="drawer-close" id="closeDrawerBtn">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+
+    <div class="drawer-title">
+      The Log
+    </div>
+
+    <button
+      class="drawer-close"
+      id="closeDrawerBtn"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke-width="2"
+        stroke-linecap="round"
+      >
+
+        <path d="M18 6L6 18"/>
+        <path d="M6 6l12 12"/>
+
+      </svg>
+
     </button>
+
   </div>
-  <div class="drawer-list" id="drawerList"></div>
+
+  <div
+    class="drawer-list"
+    id="drawerList"
+  ></div>
+
 </div>
 
-<div class="modal-backdrop" id="modalBackdrop">
+<!-- MODAL -->
+<div
+  class="modal-backdrop"
+  id="modalBackdrop"
+>
+
   <div class="modal">
-    <div class="modal-title">New sighting</div>
-    <div class="modal-sub">Mark it before it wanders off</div>
 
+    <div class="modal-title">
+      New sighting
+    </div>
+
+    <div class="modal-sub">
+      Mark it before it wanders off
+    </div>
+
+    <!-- PHOTO -->
     <div class="field">
-      <label class="field-label">Photo</label>
-      <div class="photo-zone" id="photoZone">
-        <div class="photo-empty" id="photoEmpty">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>
-          <span>Add a photo</span>
+
+      <label class="field-label">
+        Photo
+      </label>
+
+      <div class="photo-zone">
+
+        <div
+          class="photo-preview-area"
+          id="photoPreviewArea"
+        >
+
+          <div
+            class="photo-empty"
+            id="photoEmpty"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+
+              <circle cx="12" cy="13" r="3.5"/>
+
+            </svg>
+
+            <span>
+              Add a photo
+            </span>
+
+          </div>
+
+          <img
+            id="photoPreview"
+            style="display:none;"
+            alt="Cat preview"
+          >
+
         </div>
-        <img id="photoPreview" style="display:none;" />
+
         <div class="photo-actions">
-          <button type="button" class="photo-action" id="takePhotoBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13" r="3.5"/></svg>
+
+          <button
+            type="button"
+            class="photo-action"
+            id="takePhotoBtn"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/>
+
+              <circle cx="12" cy="13" r="3.5"/>
+
+            </svg>
+
             Take photo
+
           </button>
-          <button type="button" class="photo-action" id="uploadPhotoBtn">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>
+
+          <button
+            type="button"
+            class="photo-action"
+            id="uploadPhotoBtn"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+
+              <path d="M12 16V4"/>
+              <path d="m7 9 5-5 5 5"/>
+              <path d="M5 20h14"/>
+
+            </svg>
+
             Upload photo
+
           </button>
+
         </div>
-        <input type="file" accept="image/*" capture="environment" class="photo-input" id="cameraInput" />
-        <input type="file" accept="image/*" class="photo-input" id="uploadInput" />
+
+        <input
+          type="file"
+          accept="image/*"
+          capture="environment"
+          class="photo-input"
+          id="cameraInput"
+        >
+
+        <input
+          type="file"
+          accept="image/*"
+          class="photo-input"
+          id="uploadInput"
+        >
+
       </div>
+
     </div>
 
+    <!-- NAME -->
     <div class="field">
-      <label class="field-label">Name tag</label>
-      <input type="text" class="text-input" id="nameInput" placeholder="e.g. Whiskers, Ginger, Boss Cat" maxlength="40" />
+
+      <label class="field-label">
+        Name tag
+      </label>
+
+      <input
+        type="text"
+        class="text-input"
+        id="nameInput"
+        placeholder="e.g. Whiskers, Ginger, Boss Cat"
+        maxlength="40"
+      >
+
     </div>
 
+    <!-- PRIVACY -->
     <div class="privacy-note">
-      <strong>Privacy:</strong> Your photo, name and saved coordinates stay in this browser.
-      They are not uploaded by this app. The map provider may still receive normal
-      map-tile requests from your browser.
-    </div>
 
-    <div class="privacy-note">
-      <strong>Privacy:</strong> Your photo, name and approximate location stay in this browser.
-      Locations are rounded to about 100 m before saving. Nothing is uploaded by this app.
+      <strong>Privacy:</strong>
+
+      Your photo, name and approximate location stay in this browser.
+      Locations are rounded to about 100 m before saving.
+      Nothing is uploaded by PawScout.
+
       The online map provider still receives normal map-tile requests.
+
     </div>
 
+    <!-- LOCATION -->
     <div class="field">
-      <label class="field-label">Location</label>
-      <div class="loc-status" id="locStatus">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/></svg>
-        <span id="locStatusText">Finding you…</span>
+
+      <label class="field-label">
+        Location
+      </label>
+
+      <div
+        class="loc-status"
+        id="locStatus"
+      >
+
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        >
+
+          <circle cx="12" cy="12" r="9"/>
+
+        </svg>
+
+        <span id="locStatusText">
+          Finding you…
+        </span>
+
       </div>
+
     </div>
 
+    <!-- BUTTONS -->
     <div class="modal-actions">
-      <button class="btn btn-cancel" id="cancelBtn">Cancel</button>
-      <button class="btn btn-save" id="saveBtn" disabled>Log it</button>
+
+      <button
+        class="btn btn-cancel"
+        id="cancelBtn"
+      >
+        Cancel
+      </button>
+
+      <button
+        class="btn btn-save"
+        id="saveBtn"
+        disabled
+      >
+        Log it
+      </button>
+
     </div>
+
   </div>
+
 </div>
 
-<div class="toast" id="toast"></div>
+<div
+  class="toast"
+  id="toast"
+></div>
 
 <script>
-(function(){
-  var DEFAULT_LAT = 19.0760, DEFAULT_LNG = 72.8777; // fallback center
-  var map = L.map('map', { zoomControl:false, attributionControl:false }).setView([DEFAULT_LAT, DEFAULT_LNG], 15);
 
-  // External basemap. Saved sightings/photos are not uploaded by this app.
-  var darkTiles = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
-    { maxZoom:19 }
+(function () {
+
+  /* =====================================================
+     MAP
+     ===================================================== */
+
+  var DEFAULT_LAT = 19.0760;
+  var DEFAULT_LNG = 72.8777;
+
+  var map = L.map('map', {
+    zoomControl: false
+  }).setView(
+    [DEFAULT_LAT, DEFAULT_LNG],
+    15
   );
-  var lightTiles = L.tileLayer(
-    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-    { maxZoom:19 }
-  );
-
-  var mapTheme = localStorage.getItem('straylog:mapTheme') || 'dark';
-  (mapTheme === 'light' ? lightTiles : darkTiles).addTo(map);
-
-  var markers = {};
-  var pendingLoc = null;
-  var pendingPhoto = null;
-
-  function pawIcon(){
-    // Reuse the exact PawScout brand paw from the top-left.
-    return L.divIcon({
-      className:'paw-pin',
-      html:'<svg width="34" height="34" viewBox="0 0 24 24" fill="none">'+
-        '<path d="M12 15c-2.6 0-4.7 1.6-5.2 3.9-.2.9.6 1.6 1.4 1.3 1.1-.4 2.4-.6 3.8-.6s2.7.2 3.8.6c.8.3 1.6-.4 1.4-1.3-.5-2.3-2.6-3.9-5.2-3.9z" fill="#f2a93b"/>'+
-        '<circle cx="6.2" cy="10.5" r="1.9" fill="#f2a93b"/>'+
-        '<circle cx="17.8" cy="10.5" r="1.9" fill="#f2a93b"/>'+
-        '<circle cx="9.5" cy="7.2" r="1.7" fill="#f2a93b"/>'+
-        '<circle cx="14.5" cy="7.2" r="1.7" fill="#f2a93b"/>'+
-      '</svg>',
-      iconSize:[34,34],
-      iconAnchor:[17,17],
-      popupAnchor:[0,-19]
-    });
+var mapTiles = L.tileLayer(
+  'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+  {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri'
   }
+);
 
-  function fmtDate(iso){
-    var d = new Date(iso);
-    var months=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-    return months[d.getMonth()]+' '+String(d.getDate()).padStart(2,'0')+' \u00b7 '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-  }
-  function fmtCoord(lat,lng){ return lat.toFixed(3)+', '+lng.toFixed(3); }
+mapTiles.addTo(map);
 
-  function toast(msg){
-    var t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show');
-    setTimeout(function(){ t.classList.remove('show'); }, 2200);
-  }
+  /*
+   * IMPORTANT:
+   *
+   * This uses OpenStreetMap.
+   *
+   * NO API KEY.
+   *
+   */
 
-  function addMarkerToMap(entry){
-    var m = L.marker([entry.lat, entry.lng], { icon: pawIcon() }).addTo(map);
-    m.bindPopup(
-      '<div class="pop-card">'+
-        '<div class="pop-stamp">'+fmtDate(entry.date)+'</div>'+
-        '<img class="pop-photo" src="'+entry.photo+'" />'+
-        '<div class="pop-body">'+
-          '<div class="pop-name">'+escapeHtml(entry.name)+'</div>'+
-          '<div class="pop-meta">'+fmtCoord(entry.lat, entry.lng)+'</div>'+
-        '</div>'+
-      '</div>'
-    );
-    markers[entry.id] = m;
-  }
 
-  function escapeHtml(s){
-    var d=document.createElement('div'); d.textContent=s; return d.innerHTML;
-  }
+
+
+  /* =====================================================
+     STORAGE
+     ===================================================== */
 
   var entries = {};
-  var memoryStore = {}; // last-resort fallback if even localStorage is blocked
-  var LS_PREFIX = 'straylog:';
 
-  function lsGet(key){
-    try{ return localStorage.getItem(LS_PREFIX+key); }catch(e){ return memoryStore.hasOwnProperty(key) ? memoryStore[key] : null; }
-  }
-  function lsSet(key, value){
-    try{ localStorage.setItem(LS_PREFIX+key, value); return true; }catch(e){ memoryStore[key]=value; return false; }
-  }
-  function lsDelete(key){
-    try{ localStorage.removeItem(LS_PREFIX+key); }catch(e){}
-    delete memoryStore[key];
-  }
-  function lsListKeys(prefix){
-    var keys = [];
-    try{
-      for(var i=0;i<localStorage.length;i++){
-        var k = localStorage.key(i);
-        if(k && k.indexOf(LS_PREFIX+prefix)===0) keys.push(k.slice(LS_PREFIX.length));
-      }
-    }catch(e){}
-    Object.keys(memoryStore).forEach(function(k){ if(k.indexOf(prefix)===0 && keys.indexOf(k)===-1) keys.push(k); });
-    return keys;
-  }
+  var memoryStore = {};
 
-  // Privacy-first storage:
-  // All sightings are stored only in this browser's localStorage.
-  // No remote storage bridge, account, or upload endpoint is used.
-  var safeStorage = {
-    async set(key, value){
-      lsSet(key, value);
-      return {key:key, value:value};
-    },
-    async get(key){
-      var v = lsGet(key);
-      return v !== null ? {key:key, value:v} : null;
-    },
-    async delete(key){
-      lsDelete(key);
-    },
-    async list(prefix){
-      return { keys: lsListKeys(prefix) };
+  var LS_PREFIX = 'pawscout:';
+
+
+  function lsGet(key) {
+
+    try {
+
+      return localStorage.getItem(
+        LS_PREFIX + key
+      );
+
+    } catch (e) {
+
+      return memoryStore[key] || null;
+
     }
+
+  }
+
+
+  function lsSet(key, value) {
+
+    try {
+
+      localStorage.setItem(
+        LS_PREFIX + key,
+        value
+      );
+
+    } catch (e) {
+
+      memoryStore[key] = value;
+
+    }
+
+  }
+
+
+  function lsDelete(key) {
+
+    try {
+
+      localStorage.removeItem(
+        LS_PREFIX + key
+      );
+
+    } catch (e) {}
+
+    delete memoryStore[key];
+
+  }
+
+
+  function lsListKeys(prefix) {
+
+    var keys = [];
+
+    try {
+
+      for (
+        var i = 0;
+        i < localStorage.length;
+        i++
+      ) {
+
+        var k = localStorage.key(i);
+
+        if (
+          k &&
+          k.indexOf(
+            LS_PREFIX + prefix
+          ) === 0
+        ) {
+
+          keys.push(
+            k.slice(LS_PREFIX.length)
+          );
+
+        }
+
+      }
+
+    } catch (e) {}
+
+    Object.keys(memoryStore)
+      .forEach(function (k) {
+
+        if (
+          k.indexOf(prefix) === 0 &&
+          keys.indexOf(k) === -1
+        ) {
+
+          keys.push(k);
+
+        }
+
+      });
+
+    return keys;
+
+  }
+
+
+  var safeStorage = {
+
+    async set(key, value) {
+
+      lsSet(key, value);
+
+      return {
+        key: key,
+        value: value
+      };
+
+    },
+
+    async get(key) {
+
+      var value = lsGet(key);
+
+      if (value !== null) {
+
+        return {
+          key: key,
+          value: value
+        };
+
+      }
+
+      return null;
+
+    },
+
+    async delete(key) {
+
+      lsDelete(key);
+
+    },
+
+    async list(prefix) {
+
+      return {
+        keys: lsListKeys(prefix)
+      };
+
+    }
+
   };
 
-  function renderDrawer(){
-    var list = document.getElementById('drawerList');
-    var ids = Object.keys(entries).sort(function(a,b){ return new Date(entries[b].date)-new Date(entries[a].date); });
-    document.getElementById('countNum').textContent = ids.length;
-    if(ids.length===0){
-      list.innerHTML = '<div class="drawer-empty">No cats logged yet. Spot one and mark the map.</div>';
-      return;
-    }
-    list.innerHTML = '';
-    ids.forEach(function(id){
-      var e = entries[id];
-      var card = document.createElement('div');
-      card.className='entry-card';
-      card.innerHTML =
-        '<img class="entry-thumb" src="'+e.photo+'" />'+
-        '<div class="entry-info">'+
-          '<div class="entry-name">'+escapeHtml(e.name)+'</div>'+
-          '<div class="entry-date">'+fmtDate(e.date)+'</div>'+
-        '</div>'+
-        '<button class="entry-edit" data-id="'+id+'" title="Rename cat" aria-label="Rename cat">'+
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>'+
-        '</button>'+
-        '<button class="entry-del" data-id="'+id+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>';
-      card.addEventListener('click', function(ev){
-        if(ev.target.closest('.entry-del') || ev.target.closest('.entry-edit')) return;
-        map.flyTo([e.lat, e.lng], 17, { duration:0.6 });
-        markers[id].openPopup();
-        closeDrawer();
-      });
-      card.querySelector('.entry-edit').addEventListener('click', function(ev){
-        ev.stopPropagation();
-        renameEntry(id);
-      });
-      card.querySelector('.entry-del').addEventListener('click', function(ev){
-        ev.stopPropagation();
-        deleteEntry(id);
-      });
-      list.appendChild(card);
-    });
+
+  /* =====================================================
+     HELPERS
+     ===================================================== */
+
+  function escapeHtml(value) {
+
+    var div = document.createElement('div');
+
+    div.textContent = value;
+
+    return div.innerHTML;
+
   }
 
-  async function renameEntry(id){
-    var entry = entries[id];
-    if(!entry) return;
 
-    var nextName = window.prompt('Rename this cat:', entry.name);
-    if(nextName === null) return;
+  function fmtDate(iso) {
 
-    nextName = nextName.trim().slice(0, 40);
-    if(!nextName){
-      toast('Cat name cannot be empty');
+    var d = new Date(iso);
+
+    var months = [
+      'JAN','FEB','MAR','APR','MAY','JUN',
+      'JUL','AUG','SEP','OCT','NOV','DEC'
+    ];
+
+    return (
+      months[d.getMonth()] +
+      ' ' +
+      String(d.getDate()).padStart(2,'0') +
+      ' · ' +
+      String(d.getHours()).padStart(2,'0') +
+      ':' +
+      String(d.getMinutes()).padStart(2,'0')
+    );
+
+  }
+
+
+  function fmtCoord(lat, lng) {
+
+    return (
+      lat.toFixed(3) +
+      ', ' +
+      lng.toFixed(3)
+    );
+
+  }
+
+
+  function toast(message) {
+
+    var t =
+      document.getElementById('toast');
+
+    t.textContent = message;
+
+    t.classList.add('show');
+
+    setTimeout(function () {
+
+      t.classList.remove('show');
+
+    }, 2200);
+
+  }
+
+
+  /* =====================================================
+     PAW MARKER
+     ===================================================== */
+
+  function pawIcon() {
+
+    return L.divIcon({
+
+      className: 'paw-pin',
+
+      html:
+
+        '<svg width="34" height="34" viewBox="0 0 24 24" fill="none">' +
+
+        '<path d="M12 15c-2.6 0-4.7 1.6-5.2 3.9-.2.9.6 1.6 1.4 1.3 1.1-.4 2.4-.6 3.8-.6s2.7.2 3.8.6c.8.3 1.6-.4 1.4-1.3-.5-2.3-2.6-3.9-5.2-3.9z" fill="#f2a93b"/>' +
+
+        '<circle cx="6.2" cy="10.5" r="1.9" fill="#f2a93b"/>' +
+
+        '<circle cx="17.8" cy="10.5" r="1.9" fill="#f2a93b"/>' +
+
+        '<circle cx="9.5" cy="7.2" r="1.7" fill="#f2a93b"/>' +
+
+        '<circle cx="14.5" cy="7.2" r="1.7" fill="#f2a93b"/>' +
+
+        '</svg>',
+
+      iconSize: [34,34],
+
+      iconAnchor: [17,17],
+
+      popupAnchor: [0,-19]
+
+    });
+
+  }
+
+
+  var markers = {};
+
+
+  /* =====================================================
+     ADD MARKER
+     ===================================================== */
+
+  function addMarkerToMap(entry) {
+
+    var marker = L.marker(
+      [entry.lat, entry.lng],
+      {
+        icon: pawIcon()
+      }
+    ).addTo(map);
+
+
+    marker.bindPopup(
+
+      '<div class="pop-card">' +
+
+        '<div class="pop-stamp">' +
+          fmtDate(entry.date) +
+        '</div>' +
+
+        '<img class="pop-photo" src="' +
+          entry.photo +
+        '" alt="Cat">' +
+
+        '<div class="pop-body">' +
+
+          '<div class="pop-name">' +
+            escapeHtml(entry.name) +
+          '</div>' +
+
+          '<div class="pop-meta">' +
+            fmtCoord(entry.lat, entry.lng) +
+          '</div>' +
+
+        '</div>' +
+
+      '</div>'
+
+    );
+
+
+    markers[entry.id] = marker;
+
+  }
+
+
+  /* =====================================================
+     DRAWER
+     ===================================================== */
+
+  function renderDrawer() {
+
+    var list =
+      document.getElementById('drawerList');
+
+    var ids =
+      Object.keys(entries).sort(
+        function (a,b) {
+
+          return (
+            new Date(entries[b].date) -
+            new Date(entries[a].date)
+          );
+
+        }
+      );
+
+
+    document.getElementById(
+      'countNum'
+    ).textContent = ids.length;
+
+
+    if (ids.length === 0) {
+
+      list.innerHTML =
+        '<div class="drawer-empty">' +
+        'No cats logged yet.<br>' +
+        'Spot one and mark the map.' +
+        '</div>';
+
       return;
+
     }
+
+
+    list.innerHTML = '';
+
+
+    ids.forEach(function (id) {
+
+      var entry = entries[id];
+
+      var card =
+        document.createElement('div');
+
+      card.className = 'entry-card';
+
+
+      card.innerHTML =
+
+        '<img class="entry-thumb" src="' +
+          entry.photo +
+        '" alt="Cat">' +
+
+        '<div class="entry-info">' +
+
+          '<div class="entry-name">' +
+            escapeHtml(entry.name) +
+          '</div>' +
+
+          '<div class="entry-date">' +
+            fmtDate(entry.date) +
+          '</div>' +
+
+        '</div>' +
+
+        '<button class="entry-edit" ' +
+          'data-id="' + id + '"' +
+          'title="Rename cat">' +
+
+          '<svg viewBox="0 0 24 24" fill="none" ' +
+          'stroke="currentColor" stroke-width="2.4" ' +
+          'stroke-linecap="round" stroke-linejoin="round">' +
+
+            '<path d="M12 20h9"/>' +
+            '<path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4Z"/>' +
+
+          '</svg>' +
+
+        '</button>' +
+
+        '<button class="entry-del" ' +
+          'data-id="' + id + '">' +
+
+          '<svg viewBox="0 0 24 24" fill="none" ' +
+          'stroke="currentColor" stroke-width="2.4" ' +
+          'stroke-linecap="round">' +
+
+            '<path d="M18 6L6 18"/>' +
+            '<path d="M6 6l12 12"/>' +
+
+          '</svg>' +
+
+        '</button>';
+
+
+      card.addEventListener(
+        'click',
+        function (event) {
+
+          if (
+            event.target.closest('.entry-del') ||
+            event.target.closest('.entry-edit')
+          ) {
+
+            return;
+
+          }
+
+
+          map.flyTo(
+            [entry.lat, entry.lng],
+            17,
+            {
+              duration: 0.6
+            }
+          );
+
+
+          markers[id].openPopup();
+
+          closeDrawer();
+
+        }
+      );
+
+
+      card
+        .querySelector('.entry-edit')
+        .addEventListener(
+          'click',
+          function (event) {
+
+            event.stopPropagation();
+
+            renameEntry(id);
+
+          }
+        );
+
+
+      card
+        .querySelector('.entry-del')
+        .addEventListener(
+          'click',
+          function (event) {
+
+            event.stopPropagation();
+
+            deleteEntry(id);
+
+          }
+        );
+
+
+      list.appendChild(card);
+
+    });
+
+  }
+
+
+  /* =====================================================
+     RENAME
+     ===================================================== */
+
+  async function renameEntry(id) {
+
+    var entry = entries[id];
+
+    if (!entry) return;
+
+
+    var nextName =
+      window.prompt(
+        'Rename this cat:',
+        entry.name
+      );
+
+
+    if (nextName === null) return;
+
+
+    nextName =
+      nextName
+        .trim()
+        .slice(0,40);
+
+
+    if (!nextName) {
+
+      toast(
+        'Cat name cannot be empty'
+      );
+
+      return;
+
+    }
+
 
     entry.name = nextName;
-    await safeStorage.set('sighting:'+id, JSON.stringify(entry));
 
-    if(markers[id]){
+
+    await safeStorage.set(
+      'sighting:' + id,
+      JSON.stringify(entry)
+    );
+
+
+    if (markers[id]) {
+
       map.removeLayer(markers[id]);
-      addMarkerToMap(entry);
+
     }
+
+
+    addMarkerToMap(entry);
+
     renderDrawer();
-    toast('Cat renamed to '+nextName);
+
+    toast(
+      'Cat renamed to ' + nextName
+    );
+
   }
 
-  function deleteEntry(id){
-    safeStorage.delete('sighting:'+id);
-    if(markers[id]){ map.removeLayer(markers[id]); delete markers[id]; }
+
+  /* =====================================================
+     DELETE
+     ===================================================== */
+
+  async function deleteEntry(id) {
+
+    var entry = entries[id];
+
+    if (!entry) return;
+
+
+    var confirmed =
+      window.confirm(
+        'Remove this sighting?'
+      );
+
+
+    if (!confirmed) return;
+
+
+    await safeStorage.delete(
+      'sighting:' + id
+    );
+
+
+    if (markers[id]) {
+
+      map.removeLayer(markers[id]);
+
+      delete markers[id];
+
+    }
+
+
     delete entries[id];
+
     renderDrawer();
+
     toast('Sighting removed');
+
   }
 
-  async function loadEntries(){
-    try{
-      var res = await safeStorage.list('sighting:');
-      if(res && res.keys && res.keys.length){
-        for(var i=0;i<res.keys.length;i++){
-          try{
-            var got = await safeStorage.get(res.keys[i]);
-            if(got && got.value){
-              var e = JSON.parse(got.value);
-              entries[e.id] = e;
-              addMarkerToMap(e);
-            }
-          }catch(err){ console.log('Skipping unreadable entry', res.keys[i], err); }
+
+  /* =====================================================
+     LOAD SAVED ENTRIES
+     ===================================================== */
+
+  async function loadEntries() {
+
+    var result =
+      await safeStorage.list(
+        'sighting:'
+      );
+
+
+    if (
+      result &&
+      result.keys &&
+      result.keys.length
+    ) {
+
+      for (
+        var i = 0;
+        i < result.keys.length;
+        i++
+      ) {
+
+        try {
+
+          var saved =
+            await safeStorage.get(
+              result.keys[i]
+            );
+
+
+          if (
+            saved &&
+            saved.value
+          ) {
+
+            var entry =
+              JSON.parse(saved.value);
+
+
+            entries[entry.id] =
+              entry;
+
+
+            addMarkerToMap(entry);
+
+          }
+
+        } catch (error) {
+
+          console.log(
+            'Could not load entry',
+            error
+          );
+
         }
+
       }
-    }catch(e){
-      console.log('No prior entries or storage unavailable', e);
+
     }
+
+
     renderDrawer();
+
   }
 
-  async function saveEntry(){
-    if(!pendingPhoto || !pendingLoc) return;
-    var name = document.getElementById('nameInput').value.trim() || 'Unnamed cat';
-    var id = 'c'+Date.now()+Math.floor(Math.random()*1000);
-    var entry = { id:id, name:name, photo:pendingPhoto, lat:Number(pendingLoc.lat.toFixed(3)), lng:Number(pendingLoc.lng.toFixed(3)), date:new Date().toISOString() };
-    var saveBtn = document.getElementById('saveBtn');
-    saveBtn.disabled = true; saveBtn.textContent='Saving…';
-    try{
-      await safeStorage.set('sighting:'+id, JSON.stringify(entry));
-      entries[id] = entry;
-      addMarkerToMap(entry);
-      renderDrawer();
-      map.flyTo([entry.lat, entry.lng], 17, { duration:0.6 });
-      closeModal();
-      toast('Cat logged \u2014 welcome to the map, '+name);
-    }catch(e){
-      console.log('Save failed', e);
-      toast('Could not save: '+(e && e.message ? e.message : 'unknown error'));
-      saveBtn.disabled=false; saveBtn.textContent='Log it';
-    }
+
+  /* =====================================================
+     MODAL STATE
+     ===================================================== */
+
+  var modalBackdrop =
+    document.getElementById(
+      'modalBackdrop'
+    );
+
+  var locStatus =
+    document.getElementById(
+      'locStatus'
+    );
+
+  var locStatusText =
+    document.getElementById(
+      'locStatusText'
+    );
+
+  var saveBtn =
+    document.getElementById(
+      'saveBtn'
+    );
+
+
+  var pendingLoc = null;
+
+  var pendingPhoto = null;
+
+
+  function checkReady() {
+
+    saveBtn.disabled =
+      !(pendingPhoto && pendingLoc);
+
   }
 
-  /* ---------- modal control ---------- */
-  var modalBackdrop = document.getElementById('modalBackdrop');
-  var locStatusText = document.getElementById('locStatusText');
-  var locStatus = document.getElementById('locStatus');
-  var saveBtn = document.getElementById('saveBtn');
 
-  function checkReady(){
-    saveBtn.disabled = !(pendingPhoto && pendingLoc);
-  }
+  /* =====================================================
+     OPEN MODAL
+     ===================================================== */
 
-  function openModal(){
-    pendingPhoto = null; pendingLoc = null;
-    document.getElementById('nameInput').value='';
-    document.getElementById('photoPreview').style.display='none';
-    document.getElementById('photoEmpty').style.display='flex';
-    document.getElementById('cameraInput').value='';
-    document.getElementById('uploadInput').value='';
-    saveBtn.disabled = true; saveBtn.textContent='Log it';
-    locStatus.classList.remove('ready');
-    locStatusText.textContent = 'Finding you\u2026';
-    modalBackdrop.classList.add('open');
+  function openModal() {
 
-    if(navigator.geolocation){
-      navigator.geolocation.getCurrentPosition(function(pos){
-        pendingLoc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        locStatus.classList.add('ready');
-        locStatusText.textContent = 'Locked: '+fmtCoord(pendingLoc.lat, pendingLoc.lng);
-        checkReady();
-      }, function(err){
-        var c = map.getCenter();
-        pendingLoc = { lat:c.lat, lng:c.lng };
-        locStatusText.textContent = 'Using map center (GPS unavailable)';
-        checkReady();
-      }, { enableHighAccuracy:false, timeout:8000, maximumAge:60000 });
-    } else {
-      var c = map.getCenter();
-      pendingLoc = { lat:c.lat, lng:c.lng };
-      locStatusText.textContent = 'Using map center';
-      checkReady();
-    }
-  }
-  function closeModal(){ modalBackdrop.classList.remove('open'); }
+    pendingPhoto = null;
 
-  document.getElementById('openModalBtn').addEventListener('click', openModal);
-  document.getElementById('cancelBtn').addEventListener('click', closeModal);
-  modalBackdrop.addEventListener('click', function(e){ if(e.target===modalBackdrop) closeModal(); });
-  document.getElementById('saveBtn').addEventListener('click', saveEntry);
+    pendingLoc = null;
 
-  document.getElementById('takePhotoBtn').addEventListener('click', function(){
-    document.getElementById('cameraInput').click();
-  });
-  document.getElementById('uploadPhotoBtn').addEventListener('click', function(){
-    document.getElementById('uploadInput').click();
-  });
 
-  function handlePhotoSelection(e){
-    var file = e.target.files[0];
-    if(!file) return;
-    if(!file.type || file.type.indexOf('image/') !== 0){
-      toast('Please choose an image file');
-      e.target.value='';
+    document.getElementById(
+      'nameInput'
+    ).value = '';
+
+
+    document.getElementById(
+      'photoPreview'
+    ).style.display = 'none';
+
+
+    document.getElementById(
+      'photoEmpty'
+    ).style.display = 'flex';
+
+
+    document.getElementById(
+      'cameraInput'
+    ).value = '';
+
+
+    document.getElementById(
+      'uploadInput'
+    ).value = '';
+
+
+    saveBtn.disabled = true;
+
+    saveBtn.textContent = 'Log it';
+
+
+    locStatus.classList.remove(
+      'ready'
+    );
+
+
+    locStatusText.textContent =
+      'Finding you…';
+
+
+    modalBackdrop.classList.add(
+      'open'
+    );
+
+
+    if (!navigator.geolocation) {
+
+      useMapCenter();
+
       return;
+
     }
-    var reader = new FileReader();
-    reader.onload = function(ev){
-      var img = new Image();
-      img.onload = function(){
-        var maxW = 640;
-        var scale = Math.min(1, maxW/img.width);
-        var canvas = document.createElement('canvas');
-        canvas.width = Math.round(img.width*scale);
-        canvas.height = Math.round(img.height*scale);
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        pendingPhoto = canvas.toDataURL('image/jpeg', 0.72);
-        var preview = document.getElementById('photoPreview');
-        preview.src = pendingPhoto;
-        preview.style.display='block';
-        document.getElementById('photoEmpty').style.display='none';
+
+
+    navigator.geolocation.getCurrentPosition(
+
+      function (position) {
+
+        pendingLoc = {
+
+          lat:
+            position.coords.latitude,
+
+          lng:
+            position.coords.longitude
+
+        };
+
+
+        locStatus.classList.add(
+          'ready'
+        );
+
+
+        locStatusText.textContent =
+          'Location found: ' +
+          fmtCoord(
+            pendingLoc.lat,
+            pendingLoc.lng
+          );
+
+
         checkReady();
-      };
-      img.src = ev.target.result;
+
+      },
+
+      function () {
+
+        useMapCenter();
+
+      },
+
+      {
+
+        enableHighAccuracy: false,
+
+        timeout: 8000,
+
+        maximumAge: 60000
+
+      }
+
+    );
+
+  }
+
+
+  function useMapCenter() {
+
+    var center =
+      map.getCenter();
+
+
+    pendingLoc = {
+
+      lat: center.lat,
+
+      lng: center.lng
+
     };
+
+
+    locStatusText.textContent =
+      'Using map center';
+
+
+    checkReady();
+
+  }
+
+
+  function closeModal() {
+
+    modalBackdrop.classList.remove(
+      'open'
+    );
+
+  }
+
+
+  document
+    .getElementById('openModalBtn')
+    .addEventListener(
+      'click',
+      openModal
+    );
+
+
+  document
+    .getElementById('cancelBtn')
+    .addEventListener(
+      'click',
+      closeModal
+    );
+
+
+  modalBackdrop.addEventListener(
+    'click',
+    function (event) {
+
+      if (
+        event.target === modalBackdrop
+      ) {
+
+        closeModal();
+
+      }
+
+    }
+  );
+
+
+  /* =====================================================
+     PHOTO
+     ===================================================== */
+
+  document
+    .getElementById('takePhotoBtn')
+    .addEventListener(
+      'click',
+      function () {
+
+        document
+          .getElementById('cameraInput')
+          .click();
+
+      }
+    );
+
+
+  document
+    .getElementById('uploadPhotoBtn')
+    .addEventListener(
+      'click',
+      function () {
+
+        document
+          .getElementById('uploadInput')
+          .click();
+
+      }
+    );
+
+
+  function handlePhotoSelection(event) {
+
+    var file =
+      event.target.files[0];
+
+
+    if (!file) return;
+
+
+    if (
+      !file.type ||
+      file.type.indexOf('image/') !== 0
+    ) {
+
+      toast(
+        'Please choose an image file'
+      );
+
+      event.target.value = '';
+
+      return;
+
+    }
+
+
+    var reader =
+      new FileReader();
+
+
+    reader.onload =
+      function (readerEvent) {
+
+        var img =
+          new Image();
+
+
+        img.onload =
+          function () {
+
+            /*
+             * Resize photo before storing.
+             *
+             * This prevents localStorage from
+             * becoming full too quickly.
+             */
+
+            var maxWidth = 640;
+
+
+            var scale =
+              Math.min(
+                1,
+                maxWidth / img.width
+              );
+
+
+            var canvas =
+              document.createElement(
+                'canvas'
+              );
+
+
+            canvas.width =
+              Math.round(
+                img.width * scale
+              );
+
+
+            canvas.height =
+              Math.round(
+                img.height * scale
+              );
+
+
+            var context =
+              canvas.getContext(
+                '2d'
+              );
+
+
+            context.drawImage(
+              img,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+
+
+            pendingPhoto =
+              canvas.toDataURL(
+                'image/jpeg',
+                0.72
+              );
+
+
+            var preview =
+              document.getElementById(
+                'photoPreview'
+              );
+
+
+            preview.src =
+              pendingPhoto;
+
+
+            preview.style.display =
+              'block';
+
+
+            document.getElementById(
+              'photoEmpty'
+            ).style.display =
+              'none';
+
+
+            checkReady();
+
+          };
+
+
+        img.src =
+          readerEvent.target.result;
+
+      };
+
+
     reader.readAsDataURL(file);
+
   }
 
-  document.getElementById('cameraInput').addEventListener('change', handlePhotoSelection);
-  document.getElementById('uploadInput').addEventListener('change', handlePhotoSelection);
 
-  /* ---------- drawer ---------- */
-  var drawer = document.getElementById('drawer');
-  function openDrawer(){ drawer.classList.add('open'); }
-  function closeDrawer(){ drawer.classList.remove('open'); }
-  document.getElementById('countChip').addEventListener('click', openDrawer);
-  document.getElementById('closeDrawerBtn').addEventListener('click', closeDrawer);
+  document
+    .getElementById('cameraInput')
+    .addEventListener(
+      'change',
+      handlePhotoSelection
+    );
 
-  /* ---------- map theme ---------- */
-  var themeBtn = document.getElementById('themeBtn');
-  var themeIcon = document.getElementById('themeIcon');
 
-  function updateThemeButton(){
-    if(mapTheme === 'dark'){
-      themeBtn.title = 'Switch to light map';
-      themeBtn.setAttribute('aria-label','Switch to light map');
-      themeIcon.innerHTML =
-        '<circle cx="12" cy="12" r="4"/>'+
-        '<path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>';
-    }else{
-      themeBtn.title = 'Switch to dark map';
-      themeBtn.setAttribute('aria-label','Switch to dark map');
-      themeIcon.innerHTML = '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z"/>';
+  document
+    .getElementById('uploadInput')
+    .addEventListener(
+      'change',
+      handlePhotoSelection
+    );
+
+
+  /* =====================================================
+     SAVE
+     ===================================================== */
+
+  saveBtn.addEventListener(
+    'click',
+    saveEntry
+  );
+
+
+  async function saveEntry() {
+
+    if (
+      !pendingPhoto ||
+      !pendingLoc
+    ) {
+
+      return;
+
     }
+
+
+    var name =
+      document
+        .getElementById('nameInput')
+        .value
+        .trim();
+
+
+    if (!name) {
+
+      name = 'Unnamed cat';
+
+    }
+
+
+    /*
+     * Location is rounded to 3 decimal places.
+     *
+     * Approximately 100m.
+     */
+
+    var lat =
+      Number(
+        pendingLoc.lat.toFixed(3)
+      );
+
+
+    var lng =
+      Number(
+        pendingLoc.lng.toFixed(3)
+      );
+
+
+    var id =
+      'cat_' +
+      Date.now() +
+      '_' +
+      Math.floor(
+        Math.random() * 1000
+      );
+
+
+    var entry = {
+
+      id: id,
+
+      name: name,
+
+      photo: pendingPhoto,
+
+      lat: lat,
+
+      lng: lng,
+
+      date:
+        new Date().toISOString()
+
+    };
+
+
+    saveBtn.disabled = true;
+
+    saveBtn.textContent =
+      'Saving…';
+
+
+    try {
+
+      await safeStorage.set(
+        'sighting:' + id,
+        JSON.stringify(entry)
+      );
+
+
+      entries[id] =
+        entry;
+
+
+      addMarkerToMap(entry);
+
+      renderDrawer();
+
+
+      map.flyTo(
+        [lat, lng],
+        17,
+        {
+          duration: 0.6
+        }
+      );
+
+
+      closeModal();
+
+
+      toast(
+        'Cat logged — welcome to the map, ' +
+        name
+      );
+
+
+    } catch (error) {
+
+      console.error(
+        'Save failed:',
+        error
+      );
+
+
+      toast(
+        'Could not save the sighting'
+      );
+
+
+      saveBtn.disabled = false;
+
+      saveBtn.textContent =
+        'Log it';
+
+    }
+
   }
 
-  themeBtn.addEventListener('click', function(){
-    if(mapTheme === 'dark'){
-      map.removeLayer(darkTiles);
-      lightTiles.addTo(map);
-      mapTheme = 'light';
-    }else{
-      map.removeLayer(lightTiles);
-      darkTiles.addTo(map);
-      mapTheme = 'dark';
+
+  /* =====================================================
+     DRAWER
+     ===================================================== */
+
+  var drawer =
+    document.getElementById(
+      'drawer'
+    );
+
+
+  function openDrawer() {
+
+    drawer.classList.add(
+      'open'
+    );
+
+  }
+
+
+  function closeDrawer() {
+
+    drawer.classList.remove(
+      'open'
+    );
+
+  }
+
+
+  document
+    .getElementById('countChip')
+    .addEventListener(
+      'click',
+      openDrawer
+    );
+
+
+  document
+    .getElementById('closeDrawerBtn')
+    .addEventListener(
+      'click',
+      closeDrawer
+    );
+
+
+  /* =====================================================
+     MAP APPEARANCE
+     ===================================================== */
+
+  var darkMode = true;
+
+
+  var themeBtn =
+    document.getElementById(
+      'themeBtn'
+    );
+
+
+  var themeIcon =
+    document.getElementById(
+      'themeIcon'
+    );
+
+
+  themeBtn.addEventListener(
+    'click',
+    function () {
+
+      darkMode = !darkMode;
+
+
+      if (darkMode) {
+
+        /*
+         * Dark map effect
+         */
+
+        document
+          .querySelector(
+            '.leaflet-tile-pane'
+          )
+          .style.filter =
+            'saturate(0.55) brightness(0.72) contrast(1.05)';
+
+
+        themeIcon.innerHTML =
+
+          '<circle cx="12" cy="12" r="4"/>' +
+
+          '<path d="M12 2v2"/>' +
+          '<path d="M12 20v2"/>' +
+          '<path d="M4.93 4.93l1.41 1.41"/>' +
+          '<path d="M17.66 17.66l1.41 1.41"/>' +
+          '<path d="M2 12h2"/>' +
+          '<path d="M20 12h2"/>' +
+          '<path d="M4.93 19.07l1.41-1.41"/>' +
+          '<path d="M17.66 6.34l1.41-1.41"/>';
+
+        themeBtn.title =
+          'Switch to light map';
+
+      } else {
+
+        /*
+         * Normal OpenStreetMap appearance
+         */
+
+        document
+          .querySelector(
+            '.leaflet-tile-pane'
+          )
+          .style.filter =
+            'none';
+
+
+        themeIcon.innerHTML =
+
+          '<path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z"/>';
+
+
+        themeBtn.title =
+          'Switch to dark map';
+
+      }
+
     }
-    localStorage.setItem('straylog:mapTheme', mapTheme);
-    updateThemeButton();
-  });
+  );
 
-  updateThemeButton();
 
-  /* ---------- locate button ---------- */
-  document.getElementById('locateBtn').addEventListener('click', function(){
-    if(!navigator.geolocation){ toast('Geolocation not available'); return; }
-    toast('Requesting your location…');
-    navigator.geolocation.getCurrentPosition(function(pos){
-      map.flyTo([pos.coords.latitude, pos.coords.longitude], 16, { duration:0.7 });
-    }, function(){
-      toast('Location permission denied or unavailable');
-    }, {
-      enableHighAccuracy:false,
-      timeout:8000,
-      maximumAge:60000
-    });
-  });
+  /* =====================================================
+     LOCATE ME
+     ===================================================== */
 
-  /* ---------- init ---------- */
-  // Privacy-first: do not request location automatically on page load.
-  // Location is requested only after the user explicitly chooses a location action.
+  document
+    .getElementById('locateBtn')
+    .addEventListener(
+      'click',
+      function () {
+
+        if (
+          !navigator.geolocation
+        ) {
+
+          toast(
+            'Geolocation is not available'
+          );
+
+          return;
+
+        }
+
+
+        toast(
+          'Requesting your location…'
+        );
+
+
+        navigator.geolocation.getCurrentPosition(
+
+          function (position) {
+
+            map.flyTo(
+
+              [
+                position.coords.latitude,
+                position.coords.longitude
+              ],
+
+              16,
+
+              {
+                duration: 0.7
+              }
+
+            );
+
+          },
+
+          function () {
+
+            toast(
+              'Location permission denied or unavailable'
+            );
+
+          },
+
+          {
+
+            enableHighAccuracy: false,
+
+            timeout: 8000,
+
+            maximumAge: 60000
+
+          }
+
+        );
+
+      }
+    );
+
+
+  /* =====================================================
+     INITIALIZE
+     ===================================================== */
+
   loadEntries();
+
 })();
+
 </script>
 
 </body>
